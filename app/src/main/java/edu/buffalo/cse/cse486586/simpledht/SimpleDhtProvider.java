@@ -42,8 +42,11 @@ import android.util.Log;
 import java.net.ServerSocket;
 import java.util.HashMap;
 
-//References:
-//https://developer.android.com/reference/android/database/MatrixCursor.html
+/*References:
+https://developer.android.com/reference/android/database/MatrixCursor.html
+https://google-developer-training.gitbooks.io/android-developer-fundamentals-course-concepts/content/en/Unit%204/101_c_sqlite_database.html
+https://developer.android.com/guide/topics/providers/content-provider-creating.html
+*/
 
 import MessengerDatabase.DBHandler;
 
@@ -55,7 +58,6 @@ public class SimpleDhtProvider extends ContentProvider {
     static final String TAG = SimpleDhtProvider.class.getSimpleName();
     private DBHandler myDB;
 
-   // static final String[] REMOTE_PORTS = {"11108", "11112", "11116", "11120", "11124"};
     static final int SERVER_PORT = 10000;
     static String myHash = "";
     static String myPort = "";
@@ -65,15 +67,14 @@ public class SimpleDhtProvider extends ContentProvider {
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         // TODO Auto-generated method stub
 
-        Log.d("Delete" , "Entered Delete");
+       // Log.d("Delete" , "Entered Delete");
         SQLiteDatabase sqlDB = myDB.getWritableDatabase();
-        Log.d("Delete" , "Selection is " + selection);
+       // Log.d("Delete" , "Selection is " + selection);
 
         try{
             if(!(selection.equals("@") || selection.equals("*"))){
 
-                Log.d("query", "Only single key is deleted");
-                printmykeys();
+               // Log.d("query", "Only single key is deleted");
                 int count = sqlDB.delete("Tb_KeyPair","key = ?", new String[]{selection});
 
                 if(count>0)
@@ -98,7 +99,7 @@ public class SimpleDhtProvider extends ContentProvider {
         return 0;
     }
 
-    void printmykeys()
+  /*  void printmykeys()
     {
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
         queryBuilder.setTables("Tb_KeyPair");
@@ -110,7 +111,7 @@ public class SimpleDhtProvider extends ContentProvider {
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
             Log.d("Printkeys" , " Key : " + cursor.getString(0) + " Value : " + cursor.getString(1));
         }
-    }
+    } */
 
     private int sendDeleteRequest(String selection){
 
@@ -120,7 +121,7 @@ public class SimpleDhtProvider extends ContentProvider {
 
             try {
 
-                Log.d("ClientTask", "Sending agreement to : " + start_port);
+              //  Log.d("ClientTask", "Sending agreement to : " + start_port);
 
                 Socket socket1 = new Socket(InetAddress.getByAddress(new byte[]{10, 0, 2, 2}),
                         Integer.parseInt(start_port));
@@ -129,7 +130,7 @@ public class SimpleDhtProvider extends ContentProvider {
                         new PrintWriter(socket1.getOutputStream(), true);
 
 
-                Log.d(TAG, "Client: PrintWriter Created");
+              //  Log.d(TAG, "Client: PrintWriter Created");
                 out.println(selection + "###Delete");
                 out.flush();
 
@@ -192,27 +193,25 @@ public class SimpleDhtProvider extends ContentProvider {
 
         try {
 
-            Log.d("Insert" , "Start the code");
+           // Log.d("Insert" , "Start the code");
 
             String key = values.get("key").toString();
             String hashkey = this.genHash(key);
             String value = values.get("value").toString();
 
-            Log.d("Insert" , "key : " + key);
-            Log.d("Insert" , "hashkey : " + hashkey);
-            Log.d("Insert" , "value : " + value);
+          //  Log.d("Insert" , "key : " + key);
+          //  Log.d("Insert" , "hashkey : " + hashkey);
+          //  Log.d("Insert" , "value : " + value);
 
 
 
             if(belongsToMe(hashkey)){
-                Log.d("Insert" , "The hashkey belongs to me");
-
+              //  Log.d("Insert" , "The hashkey belongs to me");
                 insertIntoDB(key,value);
             }
 
             else{
-                Log.d("Insert" , "It is not my hashkey");
-
+               // Log.d("Insert" , "It is not my hashkey");
                 new ClientTask(hashkey,value).executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, "Forward",key);
             }
 
@@ -230,11 +229,11 @@ public class SimpleDhtProvider extends ContentProvider {
 
     private boolean belongsToMe(String hashkey){
 
-        Log.d("BelongsToMe" , "Check if key is yours");
-        Log.d("My key" , myself.getHash());
-        Log.d("My pre" , myself.getPredecessor());
-        Log.d("My suc" , myself.getSuccessor());
-        Log.d("hashkey" , hashkey);
+      //  Log.d("BelongsToMe" , "Check if key is yours");
+      //  Log.d("My key" , myself.getHash());
+     //   Log.d("My pre" , myself.getPredecessor());
+     //   Log.d("My suc" , myself.getSuccessor());
+     //   Log.d("hashkey" , hashkey);
 
 
         if(myself.getHash().compareTo(hashkey)==0)
@@ -243,22 +242,22 @@ public class SimpleDhtProvider extends ContentProvider {
         if(myself.getPredecessor().equals(myself.getHash()))
             return true;
 
-        Log.d("My pre" , "compare further");
+       // Log.d("My pre" , "compare further");
 
         if(myself.getHash().compareTo(myself.getPredecessor())>0){
-            Log.d("Insert", "My predecessor is less than me");
+           // Log.d("Insert", "My predecessor is less than me");
 
             if(valueBetween(myself.getPredecessor(),myself.getHash(),hashkey)==true){
-                Log.d("My pre" , "Pass case 1");
+               // Log.d("My pre" , "Pass case 1");
                 return true;
             }
         }
 
         if (myself.getPredecessor().compareTo(myself.getHash())>0) {
-            Log.d("Insert", "My predecessor is greater than me");
+           // Log.d("Insert", "My predecessor is greater than me");
 
             if(myself.getHash().compareTo(hashkey)>0 || hashkey.compareTo(myself.getPredecessor())>0){
-                Log.d("My pre" , "Pass case 2");
+               // Log.d("My pre" , "Pass case 2");
                 return true;
             }
         }
@@ -272,15 +271,15 @@ public class SimpleDhtProvider extends ContentProvider {
         mContentValues.put("key",key);
         mContentValues.put("value",value);
 
-        Log.v("db", "About to get writable database");
+       // Log.v("db", "About to get writable database");
         SQLiteDatabase sqlDB = myDB.getWritableDatabase();
-        Log.v("db", "got writable database");
+       // Log.v("db", "got writable database");
 
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
         queryBuilder.setTables("Tb_KeyPair");
 
         long result = sqlDB.insertWithOnConflict("Tb_KeyPair",null,mContentValues,SQLiteDatabase.CONFLICT_REPLACE);
-        Log.d("InsertIntoDB" , "Wrote key " + key + " value : " + value);
+      //  Log.d("InsertIntoDB" , "Wrote key " + key + " value : " + value);
 
     }
 
@@ -289,31 +288,31 @@ public class SimpleDhtProvider extends ContentProvider {
         // TODO Auto-generated method stub
 
         try{
-            Log.d("OnCreate","The system has started coding");
+          //  Log.d("OnCreate","The system has started coding");
             myDB = new DBHandler(getContext(),null,null,1);
-            Log.d("OnCreate","Line1");
+          //  Log.d("OnCreate","Line1");
 
             TelephonyManager tel = (TelephonyManager) getContext().getSystemService(Context.TELEPHONY_SERVICE);
             String portStr = tel.getLine1Number().substring(tel.getLine1Number().length() - 4);
-            Log.d("OnCreate","Line2 : portstr " + portStr);
+          //  Log.d("OnCreate","Line2 : portstr " + portStr);
 
             myHash = this.genHash(portStr);
-            Log.d("OnCreate","Line3 : Myhash " + myHash);
+          //  Log.d("OnCreate","Line3 : Myhash " + myHash);
 
             myPort = String.valueOf((Integer.parseInt(portStr) * 2));
-            Log.d("OnCreate","Line4 : myport " + myPort);
+          //  Log.d("OnCreate","Line4 : myport " + myPort);
 
             try{
 
                 myself = new Node(myPort,myHash,myHash,myHash,myPort,myPort);
                 if(myPort.equals(creator)) {
-                    Log.d("OnCreate","Line6 : Its me");
+                   // Log.d("OnCreate","Line6 : Its me");
 
                     // I am 5554 who creates everyone
                     chordInfo.add(myHash);
                     Collections.sort(chordInfo);
                     portInfo.put(myHash,myPort);
-                    Log.d("OnCreate","Line7 : Done updating variables");
+                  //  Log.d("OnCreate","Line7 : Done updating variables");
                 }
 
                 ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
@@ -333,89 +332,28 @@ public class SimpleDhtProvider extends ContentProvider {
         return false;
     }
 
-    void connectToOwner(String myPort,String myHash,String creator){
-
-        try {
-            Log.d("Connect to owner", "Starting the code");
-
-            int newport = Integer.parseInt(creator);
-
-            Log.d("Connect to owner", "Conversion done " + newport);
-
-            Socket socket = new Socket(InetAddress.getByAddress(new byte[]{10, 0, 2, 2}),
-                    Integer.parseInt(creator));
-
-            Log.d("Connect to owner", "created socket");
-
-            socket.setSoTimeout(500);
-
-            PrintWriter out =
-                    new PrintWriter(socket.getOutputStream(), true);
-
-            // Log.d(TAG, "Client: PrintWriter Created");
-            out.println(myPort + "###" + myHash + "###" + "Creation");
-            out.flush();
-
-            Log.d("Connect to owner", "Sent message. Waiting..");
-
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream()));
-
-            String line = in.readLine();
-
-            Log.d("Connect to owner", "Message arrived");
-
-            if (line != null) {
-
-                Log.d("Connect to owner", "Message not null");
-
-                String lines[] = line.split("###");
-                Log.d("After creation", "Lines length " + lines.length);
-
-                if (lines[lines.length - 1].equals("UpdateNeighbour")) {
-                    Log.d("Connect to owner", "Got reply from owner");
-                    UpdateNeighbourInfo(lines);
-                    out.println("UpdatedNeighbour");
-                    out.flush();
-                }
-            }
-            out.close();
-            socket.close();
-            Log.d("Connect to owner", "Returning back");
-        }
-        catch (UnknownHostException e) {
-            Log.e("Client Task", "Pratibha Alert ClientTask UnknownHostException");
-        } catch (SocketTimeoutException e) {
-            Log.e("Client Task", "Pratibha Alert ClientTask socket time out");
-        } catch (IOException e) {
-            Log.e("Client Task", "Pratibha Alert ClientTask socket IOException");
-        }
-    }
-
-
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
             String sortOrder) {
         // TODO Auto-generated method stub query method
 
-        Log.d("Query" , "Entered Query");
+       // Log.d("Query" , "Entered Query");
 
         SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
         queryBuilder.setTables("Tb_KeyPair");
 
-        Log.d("Query" , "Selection is " + selection);
+       // Log.d("Query" , "Selection is " + selection);
 
         try{
             if(!(selection.equals("@") || selection.equals("*"))){
 
-                Log.d("query", "Only single key is needed");
-                printmykeys();
+               // Log.d("query", "Only single key is needed");
                 Cursor cursor = queryBuilder.query(myDB.getReadableDatabase(),
                         new String[]{"key","value"}, "key = ?", new String[]{selection}, null, null,
                         sortOrder);
 
                 if((cursor!=null && cursor.getCount()>0)|| myself.getSuccessor().equals(myself.getHash())){
-                    Log.d("Query" , "I am returning the cursor");
+                   // Log.d("Query" , "I am returning the cursor");
                     return cursor;
                 }
                 else
@@ -463,13 +401,13 @@ public class SimpleDhtProvider extends ContentProvider {
 
     private void SendNeighbourUpdate()
     {
-        Log.d("SendingNeighbourUpdate","Starting the code");
+      //  Log.d("SendingNeighbourUpdate","Starting the code");
 
-        Log.d("SendingNeighbourUpdate","Size : " + chordInfo.size());
+      //  Log.d("SendingNeighbourUpdate","Size : " + chordInfo.size());
 
         for(int i=0;i<chordInfo.size();i++) {
 
-            Log.d("SendingNeighbourUpdate", " Iteration : " + i);
+         //   Log.d("SendingNeighbourUpdate", " Iteration : " + i);
 
             String pre = "", suc = "";
 
@@ -483,10 +421,10 @@ public class SimpleDhtProvider extends ContentProvider {
             else
                 suc = chordInfo.get(i + 1);
 
-            Log.d("SendingNeighbourUpdate","pre : " + pre + " suc : " + suc);
+         //   Log.d("SendingNeighbourUpdate","pre : " + pre + " suc : " + suc);
 
             if (chordInfo.get(i).equals(myself.getHash())) {
-                Log.d("SendingNeighbourUpdate","its me");
+             //   Log.d("SendingNeighbourUpdate","its me");
 
                 myself.setPredecessor(pre);
                 myself.setSuccessor(suc);
@@ -497,9 +435,9 @@ public class SimpleDhtProvider extends ContentProvider {
 
                 try {
 
-                    Log.d("SendingNeighbourUpdate","Send other");
+                //    Log.d("SendingNeighbourUpdate","Send other");
                     String remotePort = portInfo.get(chordInfo.get(i));
-                    Log.d("ClientTask", "Sending agreement to : " + remotePort);
+                //    Log.d("ClientTask", "Sending agreement to : " + remotePort);
 
                     Socket socket1 = new Socket(InetAddress.getByAddress(new byte[]{10, 0, 2, 2}),
                             Integer.parseInt(remotePort));
@@ -508,7 +446,7 @@ public class SimpleDhtProvider extends ContentProvider {
                             new PrintWriter(socket1.getOutputStream(), true);
 
 
-                    Log.d(TAG, "Client: PrintWriter Created");
+                 //   Log.d(TAG, "Client: PrintWriter Created");
                     out.println(pre + "###" + portInfo.get(pre) + "###" + suc + "###" + portInfo.get(suc) + "###UpdateNeighbour");
                     out.flush();
 
@@ -518,7 +456,7 @@ public class SimpleDhtProvider extends ContentProvider {
                     String line = in.readLine();
                     out.close();
                     socket1.close();
-                    Log.d("SendingNeighbourUpdate","Done sending : " + i);
+                 //   Log.d("SendingNeighbourUpdate","Done sending : " + i);
 
                 } catch (UnknownHostException e) {
                     Log.e(TAG, "Pratibha Alert ClientTask UnknownHostException");
@@ -539,12 +477,12 @@ public class SimpleDhtProvider extends ContentProvider {
             if(!myself.getRemoteport().equals(creator))
             {
                 try {
-                    Log.d("Connect to owner", "Starting the code");
+                 //   Log.d("Connect to owner", "Starting the code");
 
                     Socket socket = new Socket(InetAddress.getByAddress(new byte[]{10, 0, 2, 2}),
                             Integer.parseInt(creator));
 
-                    Log.d("Connect to owner", "created socket");
+                 //   Log.d("Connect to owner", "created socket");
 
                     socket.setSoTimeout(500);
 
@@ -555,17 +493,17 @@ public class SimpleDhtProvider extends ContentProvider {
                     out.println(myself.getRemoteport() + "###" + myself.getHash() + "###" + "Creation");
                     out.flush();
 
-                    Log.d("Connect to owner", "Sent message. Waiting..");
+                 //   Log.d("Connect to owner", "Sent message. Waiting..");
 
                     BufferedReader in = new BufferedReader(
                             new InputStreamReader(socket.getInputStream()));
 
                     String line = in.readLine();
 
-                    Log.d("Connect to owner", "Message arrived");
+                 //   Log.d("Connect to owner", "Message arrived");
                     out.close();
                     socket.close();
-                    Log.d("Connect to owner", "Returning back");
+                 //   Log.d("Connect to owner", "Returning back");
                 }
                 catch (UnknownHostException e) {
                     Log.e("Client Task", "Pratibha Alert ClientTask UnknownHostException");
@@ -583,7 +521,7 @@ public class SimpleDhtProvider extends ContentProvider {
                     //  Log.d("ServerTask", "Inside while true");
                     //  Log.d(TAG, "doInBackground: In try");
                     // Server will accept the connection from the client
-                    Log.d("ServerTask","Accepting..");
+                   // Log.d("ServerTask","Accepting..");
 
                     socket = serverSocket.accept();
 
@@ -602,16 +540,16 @@ public class SimpleDhtProvider extends ContentProvider {
 
                         if(lines.length==3)
                         {
-                            Log.d("ServerTask","Got some data");
+                         //   Log.d("ServerTask","Got some data");
                             String port = lines[0];
                             String hash = lines[1];
                             String type=lines[2];
 
-                            Log.d("ServerTask","Port " + port + " with hash " + hash);
+                         //   Log.d("ServerTask","Port " + port + " with hash " + hash);
 
                             if(type.equals("Creation"))
                             {
-                                Log.d("ServerTask","Creation data got..");
+                             //   Log.d("ServerTask","Creation data got..");
                                 chordInfo.add(hash);
                                 Collections.sort(chordInfo);
                                 portInfo.put(hash,port);
@@ -621,7 +559,7 @@ public class SimpleDhtProvider extends ContentProvider {
                                 out.flush();
                                 //SendNeighbourUpdate();
                                 new ClientTask().executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, "Neighbour");
-                                Log.d("ServerTask","Creation Done..");
+                             //   Log.d("ServerTask","Creation Done..");
                             }
                         }
                         else if(lines.length==5)
@@ -639,7 +577,7 @@ public class SimpleDhtProvider extends ContentProvider {
                         if(lines.length==4){
                             if(lines[lines.length-1].equals("Forward")) {
 
-                                Log.d("Server Task " , "Message to check whether key is yours");
+                              //  Log.d("Server Task " , "Message to check whether key is yours");
 
                                 if(belongsToMe(lines[0])){
                                     insertIntoDB(lines[2],lines[1]);
@@ -752,7 +690,6 @@ public class SimpleDhtProvider extends ContentProvider {
     }
 
 
-
     private String convertCursorToString(Cursor cursor)
     {
         if(cursor==null || cursor.getCount()==0)
@@ -817,7 +754,7 @@ public class SimpleDhtProvider extends ContentProvider {
                     if (line != null) {
 
                         String lines[] = line.split("###");
-                        Log.d("After creation", "Lines length " + lines.length);
+                      //  Log.d("After creation", "Lines length " + lines.length);
 
                         if(lines[lines.length-1].equals("UpdateNeighbour")){
                             UpdateNeighbourInfo(lines);
@@ -829,22 +766,22 @@ public class SimpleDhtProvider extends ContentProvider {
                     socket.close();
                 }
                 else if(msgType.equals("Neighbour")){
-                    Log.d("ServerTask","Sending Updates to everyone..");
+                  //  Log.d("ServerTask","Sending Updates to everyone..");
                     SendNeighbourUpdate();
-                    Log.d("ServerTask","Done sending updates");
+                  //  Log.d("ServerTask","Done sending updates");
                 }
 
                 else if(msgType.equals("Forward")){
 
-                    Log.d("Client Task" , "Forward Function");
+                 //   Log.d("Client Task" , "Forward Function");
 
                     String actual_key = msgs[1];
 
-                    Log.d("Insert" , "key : " + key);
-                    Log.d("Insert" , "value : " + value);
-                    Log.d("Insert" , "actual key : " + actual_key);
+                 //   Log.d("Insert" , "key : " + key);
+                 //   Log.d("Insert" , "value : " + value);
+                 //   Log.d("Insert" , "actual key : " + actual_key);
 
-                    Log.d("Insert" , "Successor : " + myself.getSuccessor_port());
+                 //   Log.d("Insert" , "Successor : " + myself.getSuccessor_port());
 
                     Socket socket =  new Socket(InetAddress.getByAddress(new byte[]{10, 0, 2, 2}),
                             Integer.parseInt(myself.getSuccessor_port()));
@@ -854,7 +791,7 @@ public class SimpleDhtProvider extends ContentProvider {
                     PrintWriter out =
                             new PrintWriter(socket.getOutputStream(), true);
 
-                    Log.d(TAG, "Client: PrintWriter Created");
+                 //   Log.d(TAG, "Client: PrintWriter Created");
 
                     out.println(key + "###" + value + "###" + actual_key + "###Forward");
                     out.flush();
@@ -863,7 +800,7 @@ public class SimpleDhtProvider extends ContentProvider {
                             new InputStreamReader(socket.getInputStream()));
 
                     String line = in.readLine();
-                    Log.d("Insert","Got reply from successor : " + line);
+                 //   Log.d("Insert","Got reply from successor : " + line);
                     out.close();
                     socket.close();
                 }
@@ -892,7 +829,7 @@ public class SimpleDhtProvider extends ContentProvider {
 
     private MatrixCursor sendQueryRequest(String selection){
 
-        Log.d("SendQueryRequest" , "key is not with me");
+      //  Log.d("SendQueryRequest" , "key is not with me");
         MatrixCursor temp_cursor=new MatrixCursor(new String[] {"key","value"});
         String start_port = myself.getSuccessor_port();
 
@@ -900,7 +837,7 @@ public class SimpleDhtProvider extends ContentProvider {
 
             try {
 
-                Log.d("ClientTask", "Sending agreement to : " + start_port);
+             //   Log.d("ClientTask", "Sending agreement to : " + start_port);
 
                 Socket socket1 = new Socket(InetAddress.getByAddress(new byte[]{10, 0, 2, 2}),
                         Integer.parseInt(start_port));
@@ -909,7 +846,7 @@ public class SimpleDhtProvider extends ContentProvider {
                         new PrintWriter(socket1.getOutputStream(), true);
 
 
-                Log.d(TAG, "Client: PrintWriter Created");
+              //  Log.d(TAG, "Client: PrintWriter Created");
                 out.println(selection + "###Request");
                 out.flush();
 
@@ -919,12 +856,12 @@ public class SimpleDhtProvider extends ContentProvider {
                 String line = in.readLine();
 
                 if(line!=null){
-                    Log.d("SendQueryRequest", "Got reply");
+                  //  Log.d("SendQueryRequest", "Got reply");
 
                     String lines[] = line.split("###");
 
                     if(selection.equals("*")){
-                        Log.d("SendQueryRequest", "reply for *");
+                     //   Log.d("SendQueryRequest", "reply for *");
 
                         for(int i=1;i<lines.length;i++){
 
@@ -937,27 +874,27 @@ public class SimpleDhtProvider extends ContentProvider {
                         start_port = lines[0];
                     }
                     else{
-                        Log.d("SendQueryRequest", "reply for single");
+                      //  Log.d("SendQueryRequest", "reply for single");
                         if(lines[0].equals("Fail")){
-                            Log.d("SendQueryRequest", "Fail");
+                         //   Log.d("SendQueryRequest", "Fail");
                             if(start_port.equals(lines[1])){
                                 out.close();
                                 socket1.close();
                                 break;
                             }
                             start_port = lines[1];
-                            Log.d("SendQueryRequest", "continue sending");
+                         //   Log.d("SendQueryRequest", "continue sending");
                         }
                         else{
-                            Log.d("SendQueryRequest", "Success");
+                          //  Log.d("SendQueryRequest", "Success");
                             String values[] = lines[1].split("\\$\\$\\$");
-                            Log.d("SendQueryRequest", "key  : "+ values[0]);
-                            Log.d("SendQueryRequest", "value  : "+ values[1]);
+                          //  Log.d("SendQueryRequest", "key  : "+ values[0]);
+                          //  Log.d("SendQueryRequest", "value  : "+ values[1]);
 
                             temp_cursor.addRow(new Object[]{values[0],values[1]});
                             out.close();
                             socket1.close();
-                            Log.d("SendQueryRequest", "About to break");
+                          //  Log.d("SendQueryRequest", "About to break");
 
                             break;
                         }
@@ -981,32 +918,4 @@ public class SimpleDhtProvider extends ContentProvider {
 
         return  temp_cursor;
     }
-
-
-       /* private boolean belongsToSuccessor(String hashkey){
-
-        // No need of this function as the checks are already covered in belongsToMe()
-
-        if(hashkey.compareTo(myself.getSuccessor())==0)
-            return true;
-
-        if(myself.getSuccessor().compareTo(myself.getHash())>0){
-            Log.d("Insert","My Successor is greater than me");
-
-            if(valueBetween(myself.getHash(),myself.getSuccessor(),hashkey)){
-                return true;
-            }
-        }
-
-        if(myself.getHash().compareTo(myself.getSuccessor())>0){
-            Log.d("Insert", "My successor is less than me");
-
-            if(hashkey.compareTo(myself.getHash())>0 || myself.getSuccessor().compareTo(hashkey)>0){
-                return true;
-            }
-        }
-
-        return false;
-    }*/
 }
-

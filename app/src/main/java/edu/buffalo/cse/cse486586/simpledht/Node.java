@@ -4,6 +4,11 @@ package edu.buffalo.cse.cse486586.simpledht;
  * Created by prati on 4/5/2018.
  */
 
+/*
+* This class is a structure for maintaining the data for a node. Every node in  chord will have the following information
+* in order to communicated with his predecessor or successor
+*/
+
 public class Node {
 
     private String remoteport;
